@@ -14,7 +14,7 @@
     <ul>
         {% for blog in blogs %}
         <label>
-            <a href="/add-confirmation"><li>{{blog.title}}</li></a>
+            <a href="/add?id={{blog.id}}"><li>{{blog.title}}</li></a>
             <p>{{blog.body}}</p>
         </label>
         {% endfor %}
