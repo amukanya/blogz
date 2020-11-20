@@ -19,40 +19,43 @@ class Blog(db.Model):
         self.body = body
 
 
-@app.route("/add", methods=['POST'])
+@app.route("/add", methods=['POST','GET'])
 def add_movie():
-    # if request.method == 'POST':
-    title_name = request.form['title']
-    body_name = request.form['body']
+    if request.method == 'POST':
+        title_name = request.form['title']
+        body_name = request.form['body']
+            
+
         
+        #initializing all the error statements
+        title_error =''
+        body_error =''
+        # checking for errors
+        if (title_name == '') and (not body_name == ''):
+            title_error = 'You did not enter the title'
+            title_name = ''
+        elif (body_name == '') and (not title_name == ''):
+            body_error = 'You did not write a blog'
+            body_name = ''
+        elif (title_name == '') and (body_name == ''):
+            title_error = 'You did not enter the title'
+            body_error = 'You did not write a blog'
+            title_name = ''
+            body_name = ''
+
+        if (not title_error and not body_error):
+            new_blog = Blog(title_name, body_name)
+            db.session.add(new_blog)
+            db.session.commit()
+            return render_template('add-confirmation.html',new_blog=new_blog)
+
+        return render_template('add-confirmation.html',post=post)
+
+        else:
+            return render_template('add.html',title_error=title_error,body_error=body_error)
 
     
-    #initializing all the error statements
-    title_error =''
-    body_error =''
-    # checking for errors
-    if (title_name == '') and (not body_name == ''):
-        title_error = 'You did not enter the title'
-        title_name = ''
-    elif (body_name == '') and (not title_name == ''):
-        body_error = 'You did not write a blog'
-        body_name = ''
-    elif (title_name == '') and (body_name == ''):
-        title_error = 'You did not enter the title'
-        body_error = 'You did not write a blog'
-        title_name = ''
-        body_name = ''
-
-    if (not title_error and not body_error):
-        new_blog = Blog(title_name, body_name)
-        db.session.add(new_blog)
-        db.session.commit()
-        return render_template('add-confirmation.html',new_blog=new_blog)
-
-    else:
-        return render_template('add.html',title_error=title_error,body_error=body_error)
-        
-
+    
     
 
      
@@ -60,9 +63,7 @@ def add_movie():
 
 @app.route('/')
 def index():
-
     
-
     blogs = Blog.query.all()
     return render_template('edit.html',title ="Build A Blog" ,blogs=blogs)
 
