@@ -51,13 +51,19 @@ def add_movie():
             db.session.commit()
             return render_template('add-confirmation.html',new_blog=new_blog)
 
-        #if we have the id query parameter
-        
-        #use the id to query the database
-        return render_template('add-confirmation.html', post=post)
-
         else:
-            return render_template('add.html',title_error=title_error,body_error=body_error)
+            return render_template('add.html',title_error=title_error,body_error=body_error) 
+
+    #if we have the id query parameter
+    reqId = request.args.get('id')
+    if not (reqId is None):
+        post = Blog.query.filter_by(id=reqId).first()
+    
+        #use the id to query the database
+        return render_template('add-confirmation.html',new_blog=post)
+
+    else:
+        return render_template('add.html')
     
 
     
@@ -69,11 +75,6 @@ def add_movie():
 
 @app.route('/')
 def index():
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 0bcb693beadca672893023faee5bb66550431785
     blogs = Blog.query.all()
     return render_template('edit.html',title ="Build A Blog" ,blogs=blogs)
 
