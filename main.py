@@ -1,34 +1,80 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, session, flash
 from flask_sqlalchemy import SQLAlchemy
 import cgi
+from bcrypt import gensalt, hashpw,checkpw
+from app import app, db
+from models import Blog, User
 
-app = Flask(__name__)
-app.config['DEBUG'] = True   
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:blogz@localhost:3306/blogz'
-app.config['SQLALCHEMY_ECHO'] = True
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+    elif request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        users = User.query.filter_by(email=email)
+        if users.count() == 1:
+            user = users.first()
+            if checkpw(password.encode("utf-8"), user.hash.encode("utf-8")):
+                session['user'] = user.email
+                flash('welcome back, '+ user.email)
+                return redirect("/")
+            flash('Wrong Password')
+            return redirect("/login")
+        flash('Wrong Username')
+        
+        return redirect("/login")
 
-db = SQLAlchemy(app)
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        verify = request.form['verify']
+        if not is_email(email):
+            flash('Oups! "' + email + '" does not seem like an email address')
+            return redirect('/register')
+        email_db_count = User.query.filter_by(email=email).count()
+        if email_db_count > 0:
+            flash('Yikes!! "' + email + '" is already taken and password reminders are not implemented')
+            return redirect('/register')
+        if password != verify:
+            flash('Passwords did not match')
+            return redirect('/register')
+        #Hashing the password
+        salt = gensalt()
+        hash = hashpw(password.encode("utf-8"), salt)
+        
+        user = User(email=email, hash=hash)
+        db.session.add(user)
+        db.session.commit()
+        session['user'] = user.email
+        return redirect("/")
+    else:
+        return render_template('register.html')
 
-class Blog(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120))    
-    body = db.Column(db.String(120))    
-
-    def __init__(self, title, body):
-        self.title = title
-        self.body = body
-
+def is_email(string):
+    atsign_index = string.find('@')
+    atsign_present = atsign_index >= 0
+    if not atsign_present:
+        return False
+    else:
+        domain_dot_index = string.find('.', atsign_index)
+        domain_dot_present = domain_dot_index >= 0
+        return domain_dot_present
+@app.route("/logout", methods=['POST'])
+def logout():
+    del session['user']
+    return redirect("/login")
 
 @app.route("/add", methods=['POST','GET'])
-def add_movie():
+def add():
     title_name = ''
     body_name=''
     if request.method == 'POST':
         title_name = request.form['title']
         body_name = request.form['body']
         
-
-    
         #initializing all the error statements
         title_error =''
         body_error =''
@@ -46,7 +92,7 @@ def add_movie():
             body_name = ''
 
         if (not title_error and not body_error):
-            new_blog = Blog(title_name, body_name)
+            new_blog = Blog(title_name, body_name,logged_in_user())
             db.session.add(new_blog)
             db.session.commit()
             return render_template('add-confirmation.html',new_blog=new_blog)
@@ -69,21 +115,23 @@ def add_movie():
     
     
     
-
-     
-
-
 @app.route('/')
 def index():
-    blogs = Blog.query.all()
+    blogs = Blog.query.filter_by(owner_id=logged_in_user()).all()
     return render_template('edit.html',title ="Build A Blog" ,blogs=blogs)
 
-# @app.route('/blog', methods=['GET','POST'])
-# def blog():
+def logged_in_user():
+    owner = User.query.filter_by(email=session['user']).first()
+    return owner.id
 
-#     blogs = Blog.query.all()
-#     return render_template('edit.html',title ="Build A Blog" ,blogs=blogs)
+endpoints_without_login = ['login', 'register']
 
+@app.before_request
+def require_login():
+    if not ('user' in session or request.endpoint in endpoints_without_login):
+        return redirect("/register")
+
+app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RU'
 
 if __name__ == "__main__":
     app.run()
