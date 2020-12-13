@@ -17,7 +17,7 @@ def login():
             user = users.first()
             if checkpw(password.encode("utf-8"), user.hash.encode("utf-8")):
                 session['user'] = user.email
-                flash('welcome back, '+ user.email)
+                flash('Welcome back, '+ user.email)
                 return redirect("/")
             flash('Wrong Password')
             return redirect("/login")
@@ -31,12 +31,26 @@ def register():
         email = request.form['email']
         password = request.form['password']
         verify = request.form['verify']
+        
+        if email =='':
+            flash('You did not enter an email.')
+            return redirect('redirect')
         if not is_email(email):
-            flash('Oups! "' + email + '" does not seem like an email address')
+            flash('Oups! "' + email + '". A correct email must have period -.- following by -@- in its form.')
+            return redirect('/register')
+        if len(email) <= 3:
+            flash('Email is too short. Must have more than three characters.')
             return redirect('/register')
         email_db_count = User.query.filter_by(email=email).count()
         if email_db_count > 0:
             flash('Yikes!! "' + email + '" is already taken and password reminders are not implemented')
+            return redirect('/register')
+        
+        if password =='':
+            flash('You did not enter a password.')
+            return redirect('/register')
+        if len(password) <= 3:
+            flash('Password is too short. Must have more than three characters')
             return redirect('/register')
         if password != verify:
             flash('Passwords did not match')
@@ -111,7 +125,12 @@ def add():
     else:
         return render_template('add.html')
     
-
+@app.route('/index', methods =['GET'] )
+def homepage():
+    users= User.query.all()
+    blogs = Blog.query.all()
+   
+    return render_template('index.html',users=users,blogs=blogs)
     
     
     
@@ -124,7 +143,7 @@ def logged_in_user():
     owner = User.query.filter_by(email=session['user']).first()
     return owner.id
 
-endpoints_without_login = ['login', 'register']
+endpoints_without_login = ['login', 'register','index']
 
 @app.before_request
 def require_login():
