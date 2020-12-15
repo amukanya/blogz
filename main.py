@@ -129,8 +129,19 @@ def add():
 def homepage():
     users= User.query.all()
     blogs = Blog.query.all()
-   
-    return render_template('index.html',users=users,blogs=blogs)
+
+    # userid = request.args.get('id')
+    # current_user=""
+    # for user in users:
+    #     if(user.id == int(userid)):
+    #         current_user = user
+    #         break
+    userposts = []    
+    for blog in blogs:
+        userposts.append(blog)
+    return render_template("index.html", blogs = userposts, users= users)
+    
+    # return render_template('index.html',users=users,blogs=blogs)
     
     
     
@@ -143,7 +154,7 @@ def logged_in_user():
     owner = User.query.filter_by(email=session['user']).first()
     return owner.id
 
-endpoints_without_login = ['login', 'register','index']
+endpoints_without_login = ['login', 'register']
 
 @app.before_request
 def require_login():
