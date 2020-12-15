@@ -2,48 +2,39 @@
 
 {%  block content %}
 
-<!-- {% if users|length == 0 %}
-    <p>There are no users registered yet</p>
-    {% else %} -->
+
     <form method='GET'>
         <header>
-            ,<h1>All users</h1>
+            ,<h1>Home</h1>
         </header>
     </form>
-    <!-- <ul>
+    <div>
+        <h3>Users</h3>
         {% for user in users %}
-        <label>
-            <a href="/index?user={{user.id}}"><li>{{user.email}}</li></a>
-            <ul> -->
-                <!-- {% for blog in blogs %}
-                <label>
-                    <a href="/add?id={{blog.id}}"><li>{{blog.title}}</li></a>
-                    <p>{{blog.body}}</p><p> Posted by: <i>{{user.name}}</i></p>
-                </label>
-                {% endfor %} -->
-        <div>
-    
+        <ul>
+            <li><a href="/?user={{user.id}}"><i>{{user.email}}</i></a></li>
+        {% endfor %}
+    </ul>
+            
+    </div>
+    <div>
+        <hr>
+        <h3>All Blogs</h3>
+        {% for blog in blogs %}
             <hr>
-                {% for blog in blogs %}
-                <hr>
-                <div>
-                <h3>{{ blog.title }}</h3></p></a>
-                <p class="body-text">{{ blog.body }}</p>
-                <p>Posted by:<i> <a href="/?id={{blog.owner_id}}">
-                {% for user in users %}
-                    {% if blog.owner_id == user.id %}
-                        {{ user.email }}
-                    {% endif %}
-                {% endfor %}</i>
-                </a></p>
-            </div>
-            {% endfor %}
+            <div>
+            <h3>{{ blog.title }}</h3></p></a>
+            <p class="body-text">{{ blog.body }}</p>
+            <p>Posted by:<i> <a href="/?id={{blog.owner_id}}">
+            {% for user in users %}
+                {% if blog.owner_id == user.id %}
+                    {{ user.email }}
+                {% endif %}
+            {% endfor %}</i>
+            </a></p>
         </div>
-            <!-- </ul>
-        </label> -->
-        
-        <!-- {% endfor %} -->
-    <!-- </ul> -->
-    <!-- {% endif %} -->
+        {% endfor %}
+    </div>
+          
 
 {% endblock %}
